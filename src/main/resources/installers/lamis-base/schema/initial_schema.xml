@@ -1,0 +1,761 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+
+    <!--
+        LAMIS core tables.
+        The initial schema has the '00000000000001' id, so that it is over-written if we re-generate it.
+    -->
+    <changeSet author="mattae" id="00000000000001-01">
+        <preConditions>
+            <not>
+                <tableExists tableName="country"/>
+            </not>
+        </preConditions>
+        <createTable tableName="country">
+            <column autoIncrement="true" name="id" type="serial">
+                <constraints primaryKey="true" primaryKeyName="countryPK"/>
+            </column>
+            <column name="code" type="VARCHAR(4)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="mattae" id="00000000000001-02">
+        <preConditions>
+            <not>
+                <tableExists tableName="state"/>
+            </not>
+        </preConditions>
+        <createTable tableName="state">
+            <column autoIncrement="true" name="id" type="serial">
+                <constraints primaryKey="true" primaryKeyName="statePK"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(4)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="country_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="mattae" id="00000000000001-03">
+        <preConditions>
+            <not>
+                <tableExists tableName="province"/>
+            </not>
+        </preConditions>
+        <createTable tableName="province">
+            <column autoIncrement="true" name="id" type="serial">
+                <constraints primaryKey="true" primaryKeyName="provincePK"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="mattae" id="00000000000001-04">
+        <addForeignKeyConstraint baseColumnNames="state_id" baseTableName="province" constraintName="fk_province_state_id"
+                                 deferrable="false" initiallyDeferred="false" referencedColumnNames="id"
+                                 referencedTableName="state"/>
+
+        <addForeignKeyConstraint baseColumnNames="country_id" baseTableName="state" constraintName="fk_state_country_id"
+                                 deferrable="false" initiallyDeferred="false" referencedColumnNames="id"
+                                 referencedTableName="country"/>
+    </changeSet>
+
+    <changeSet author="mattae" id="00000000000001-05">
+        <createTable tableName="codifier">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="codifier_group" type="varchar(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="varchar(8)"/>
+            <column name="code" type="varchar(256)"/>
+            <column name="display" type="varchar(512)"/>
+            <column name="active" type="boolean" valueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="codeable_concept">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="text" type="varchar(512)"/>
+        </createTable>
+
+        <createTable tableName="concept_codifier">
+            <column name="codifier_id" type="integer"/>
+            <column name="concept_id" type="integer"/>
+        </createTable>
+
+        <addPrimaryKey columnNames="codifier_id, concept_id" tableName="concept_codifier"/>
+
+        <addForeignKeyConstraint baseColumnNames="codifier_id"
+                                 baseTableName="concept_codifier"
+                                 constraintName="fk_concept_codifier_codifier_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="codifier"/>
+
+        <addForeignKeyConstraint baseColumnNames="concept_id"
+                                 baseTableName="concept_codifier"
+                                 constraintName="fk_concept_codifier_concept_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="codeable_concept"/>
+
+        <createTable tableName="person">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="first_name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="other_names" type="varchar(50)"/>
+            <column name="dob" type="datetime"/>
+            <column name="dob_estimated" type="boolean"/>
+            <column name="gender_id" type="integer"/>
+            <column name="occupation_id" type="integer"/>
+            <column name="education_id" type="integer"/>
+            <column name="title_id" type="integer"/>
+        </createTable>
+
+        <createTable tableName="person_contact">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="street" type="varchar(32)"/>
+            <column name="street2" type="varchar(32)"/>
+            <column name="city" type="varchar(32)"/>
+            <column name="landmark" type="varchar(64)"/>
+            <column name="zip_code" type="varchar(16)"/>
+            <column name="province_id" type="integer"/>
+            <column name="state_id" type="integer"/>
+            <column name="country_id" type="integer"/>
+            <column name="website" type="varchar(256)"/>
+            <column name="mobile_phone_number" type="varchar(32)"/>
+            <column name="alternate_phone_number" type="varchar(32)"/>
+            <column name="person_id" type="integer"/>
+        </createTable>
+
+        <createTable tableName="related_person">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="person_id" type="integer"/>
+            <column name="related_id" type="integer"/>
+            <column name="relationship_type_id" type="integer"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mattae" id="00000000000001-06">
+
+        <addForeignKeyConstraint baseTableName="person" baseColumnNames="title_id"
+                                 constraintName="fk_person_title_id"
+                                 referencedTableName="codifier"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="person" baseColumnNames="gender_id"
+                                 constraintName="fk_person_gender_id"
+                                 referencedTableName="codifier"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="person" baseColumnNames="occupation_id"
+                                 constraintName="fk_person_occupation_id"
+                                 referencedTableName="codifier"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="person" baseColumnNames="education_id"
+                                 constraintName="fk_person_education_id"
+                                 referencedTableName="codifier"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="person_contact" baseColumnNames="province_id"
+                                 constraintName="fk_person_contact_province_id"
+                                 referencedTableName="province"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="person_contact" baseColumnNames="person_id"
+                                 constraintName="fk_person_contact_person_id"
+                                 referencedTableName="person"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="person_contact" baseColumnNames="state_id"
+                                 constraintName="fk_person_contact_state_id"
+                                 referencedTableName="state"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="person_contact" baseColumnNames="country_id"
+                                 constraintName="fk_person_contact_country_id"
+                                 referencedTableName="country"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="related_person" baseColumnNames="relationship_type_id"
+                                 constraintName="fk_related_person_relationship_type_id"
+                                 referencedTableName="codifier"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="related_person" baseColumnNames="person_id"
+                                 constraintName="fk_related_person_person_id"
+                                 referencedTableName="person"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="related_person" baseColumnNames="related_id"
+                                 constraintName="fk_related_person_related_id"
+                                 referencedTableName="person"
+                                 referencedColumnNames="id"/>
+
+    </changeSet>
+    <changeSet author="mattae" id="00000000000001-07">
+        <createTable tableName="user">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="login" type="varchar(50)">
+                <constraints unique="true" nullable="false" uniqueConstraintName="ux_user_login"/>
+            </column>
+            <column name="password_hash" type="varchar(60)"/>
+            <column name="activated" type="boolean" valueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="activation_key" type="varchar(20)"/>
+            <column name="reset_key" type="varchar(20)"/>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp"/>
+            <column name="reset_date" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+            <column name="lang_key" type="varchar(6)"/>
+            <column name="email" type="varchar(254)">
+                <constraints unique="true" nullable="true" uniqueConstraintName="ux_user_email"/>
+            </column>
+            <column name="image_url" type="varchar(512)"/>
+            <column name="person_id" type="integer"/>
+            <column name="active" type="boolean" valueBoolean="false" defaultValue="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="authority">
+            <column name="id" type="VARCHAR(50)">
+                <constraints primaryKey="true" primaryKeyName="authorityPK"/>
+            </column>
+            <column name="name" type="VARCHAR(64)"/>
+        </createTable>
+
+        <createTable tableName="user_authority">
+            <column name="user_id" type="serial">
+                <constraints nullable="false"/>
+            </column>
+            <column name="authority_id" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="user_id, authority_id" tableName="user_authority"/>
+
+        <addForeignKeyConstraint baseColumnNames="authority_id"
+                                 baseTableName="user_authority"
+                                 constraintName="fk_authority_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="authority"/>
+
+        <addForeignKeyConstraint baseColumnNames="user_id"
+                                 baseTableName="user_authority"
+                                 constraintName="fk_user_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="user"/>
+
+        <addNotNullConstraint columnName="password_hash"
+                              columnDataType="varchar(60)"
+                              tableName="user"/>
+
+        <addForeignKeyConstraint baseTableName="user" baseColumnNames="person_id"
+                                 constraintName="fk_user_person_id" referencedTableName="person"
+                                 referencedColumnNames="id"/>
+
+        <loadData encoding="UTF-8"
+                  file="installers/lamis-base/partners.csv"
+                  separator=";"
+                  tableName="person">
+            <column name="activated" type="boolean"/>
+            <column name="active" type="boolean"/>
+        </loadData>
+        <loadData encoding="UTF-8"
+                  file="installers/lamis-base/users.csv"
+                  separator=";"
+                  tableName="user">
+            <column name="activated" type="boolean"/>
+            <column name="active" type="boolean"/>
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+        <dropDefaultValue tableName="user" columnName="created_date" columnDataType="datetime"/>
+        <loadData encoding="UTF-8"
+                  file="installers/lamis-base/authorities.csv"
+                  separator=";"
+                  tableName="authority"/>
+
+        <loadData encoding="UTF-8"
+                  file="installers/lamis-base/users_authorities.csv"
+                  separator=";"
+                  tableName="user_authority"/>
+
+    </changeSet>
+
+    <changeSet author="mattae" id="00000000000001-08">
+        <createTable tableName="module">
+            <column name="id" type="serial" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(64)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="ux_module_name"/>
+            </column>
+            <column name="artifact" type="varchar(512)"/>
+            <column name="umd_location" type="varchar(512)"/>
+            <column name="module_map" type="varchar(1024)"/>
+            <column name="version" type="varchar(64)"/>
+            <column name="build_time" type="timestamp"/>
+            <column name="base_package" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(512)"/>
+            <column name="active" type="boolean"/>
+        </createTable>
+
+        <createTable tableName="web_module">
+            <column name="id" type="bigint" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="path" type="varchar(512)"/>
+            <column name="position" type="int" defaultValue="99">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(512)"/>
+            <column name="title" type="varchar(512)"/>
+            <column name="breadcrumb" type="varchar(512)"/>
+            <column name="type" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="provides_for_id" type="bigint"/>
+            <column name="module_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="mattae" id="00000000000001-09">
+        <addColumn tableName="authority">
+            <column name="module_id" type="integer"/>
+        </addColumn>
+        <addForeignKeyConstraint baseColumnNames="module_id" baseTableName="authority"
+                                 constraintName="fk_authority_module_id"
+                                 deferrable="false" initiallyDeferred="false" referencedColumnNames="id"
+                                 referencedTableName="module"/>
+    </changeSet>
+
+    <changeSet author="mattae" id="00000000000001-10">
+        <createTable tableName="module_authorities">
+            <column name="module_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="authorities" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseColumnNames="module_id" baseTableName="module_authorities"
+                                 constraintName="fk_module_authorities_module_id"
+                                 deferrable="false" initiallyDeferred="false" referencedColumnNames="id"
+                                 referencedTableName="module"/>
+    </changeSet>
+    <changeSet author="mattae" id="00000000000001-11">
+        <createTable tableName="menu">
+            <column name="id" type="bigint" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="level" type="varchar(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="position" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="icon" type="varchar(64)"/>
+            <column name="tooltip" type="varchar(256)"/>
+            <column name="breadcrumb" type="varchar(256)"/>
+            <column name="disabled" type="boolean" valueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="module_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_id" type="integer"/>
+        </createTable>
+
+        <createTable tableName="menu_authorities">
+            <column name="menu_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="authorities" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="web_module_authorities">
+            <column name="web_module_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="authorities" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mattae" id="00000000000001-12">
+        <addForeignKeyConstraint baseColumnNames="module_id" baseTableName="menu" constraintName="fk_menu_module_id"
+                                 deferrable="false" initiallyDeferred="false" referencedColumnNames="id"
+                                 referencedTableName="module"/>
+
+        <addForeignKeyConstraint baseColumnNames="menu_id" baseTableName="menu_authorities"
+                                 constraintName="fk_menu_authorities_menu_id"
+                                 deferrable="false" initiallyDeferred="false" referencedColumnNames="id"
+                                 referencedTableName="menu"/>
+
+        <addForeignKeyConstraint baseColumnNames="parent_id" baseTableName="menu" constraintName="fk_menu_parent_id"
+                                 deferrable="false" initiallyDeferred="false" referencedColumnNames="id"
+                                 referencedTableName="menu"/>
+
+        <addForeignKeyConstraint baseColumnNames="web_module_id" baseTableName="web_module_authorities"
+                                 constraintName="fk_web_module_authorities_web_module_id"
+                                 deferrable="false" initiallyDeferred="false" referencedColumnNames="id"
+                                 referencedTableName="web_module"/>
+    </changeSet>
+
+    <changeSet author="mattae" id="00000000000001-13">
+        <addForeignKeyConstraint baseColumnNames="module_id" baseTableName="web_module"
+                                 constraintName="fk_web_module_module_id"
+                                 deferrable="false" initiallyDeferred="false" referencedColumnNames="id"
+                                 referencedTableName="module"/>
+
+        <addForeignKeyConstraint baseTableName="web_module" baseColumnNames="provides_for_id"
+                                 constraintName="fk_web_module_provides_for_id"
+                                 referencedTableName="web_module"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet author="mattae" id="00000000000001-14">
+        <loadData encoding="UTF-8"
+                  file="installers/lamis-base/countries.csv"
+                  separator=";"
+                  tableName="country"/>
+    </changeSet>
+
+    <changeSet author="mattae" id="00000000000001-15">
+        <loadData encoding="UTF-8"
+                  file="installers/lamis-base/states.csv"
+                  separator=";"
+                  tableName="state"/>
+    </changeSet>
+    <changeSet author="mattae" id="00000000000001-16">
+        <loadData encoding="UTF-8"
+                  file="installers/lamis-base/province.csv"
+                  separator=";"
+                  tableName="province"/>
+    </changeSet>
+
+    <changeSet author="mattae" id="00000000000001-17">
+        <createTable tableName="module_dependencies">
+            <column name="id" type="bigint" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="module_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="dependency_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="module_id" baseTableName="module_dependencies"
+                                 constraintName="fk_module_dependency_module_id"
+                                 deferrable="false" initiallyDeferred="false" referencedColumnNames="id"
+                                 referencedTableName="module"/>
+
+        <addForeignKeyConstraint baseColumnNames="dependency_id" baseTableName="module_dependencies"
+                                 constraintName="fk_module_dependency_dependency_id"
+                                 deferrable="false" initiallyDeferred="false" referencedColumnNames="id"
+                                 referencedTableName="module"/>
+
+        <addUniqueConstraint columnNames="module_id, dependency_id" tableName="module_dependencies"/>
+    </changeSet>
+
+    <changeSet author="mattae" id="00000000000001-23">
+        <createTable tableName="form">
+            <column name="id" type="varchar(36)" defaultValue="uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="priority" type="int" defaultValue="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="module_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="path" type="varchar(128)"/>
+            <column name="form" type="jsonb"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mattae" id="00000000000001-24">
+        <addForeignKeyConstraint baseTableName="form" baseColumnNames="module_id"
+                                 constraintName="fk_form_module_id" referencedTableName="module"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="2_3_0" author="mattae">
+        <sql dbms="postgresql">
+            CREATE TABLE qrtz_blob_triggers (
+            trigger_name character varying(80) NOT NULL,
+            trigger_group character varying(80) NOT NULL,
+            blob_data text,
+            sched_name character varying(120) DEFAULT 'TestScheduler'::character varying NOT NULL
+            );
+
+            CREATE TABLE qrtz_calendars (
+            calendar_name character varying(80) NOT NULL,
+            calendar text NOT NULL,
+            sched_name character varying(120) DEFAULT 'TestScheduler'::character varying NOT NULL
+            );
+
+            CREATE TABLE qrtz_cron_triggers (
+            trigger_name character varying(80) NOT NULL,
+            trigger_group character varying(80) NOT NULL,
+            cron_expression character varying(80) NOT NULL,
+            time_zone_id character varying(80),
+            sched_name character varying(120) DEFAULT 'TestScheduler'::character varying NOT NULL
+            );
+
+            CREATE TABLE qrtz_fired_triggers (
+            entry_id character varying(95) NOT NULL,
+            trigger_name character varying(80) NOT NULL,
+            trigger_group character varying(80) NOT NULL,
+            instance_name character varying(80) NOT NULL,
+            fired_time bigint NOT NULL,
+            priority integer NOT NULL,
+            state character varying(16) NOT NULL,
+            job_name character varying(80),
+            job_group character varying(80),
+            is_nonconcurrent boolean,
+            is_update_data boolean,
+            sched_name character varying(120) DEFAULT 'TestScheduler'::character varying NOT NULL,
+            sched_time bigint NOT NULL,
+            requests_recovery boolean
+            );
+
+            CREATE TABLE qrtz_job_details (
+            job_name character varying(128) NOT NULL,
+            job_group character varying(80) NOT NULL,
+            description character varying(120),
+            job_class_name character varying(200) NOT NULL,
+            is_durable boolean,
+            is_nonconcurrent boolean,
+            is_update_data boolean,
+            sched_name character varying(120) DEFAULT 'TestScheduler'::character varying NOT NULL,
+            requests_recovery boolean,
+            job_data bytea
+            );
+
+            CREATE TABLE qrtz_locks (
+            lock_name character varying(40) NOT NULL,
+            sched_name character varying(120) DEFAULT 'TestScheduler'::character varying NOT NULL
+            );
+
+            INSERT INTO QRTZ_LOCKS VALUES('trigger_access');
+            INSERT INTO QRTZ_LOCKS VALUES('job_access');
+            INSERT INTO QRTZ_LOCKS VALUES('calendar_access');
+            INSERT INTO QRTZ_LOCKS VALUES('state_access');
+            INSERT INTO QRTZ_LOCKS VALUES('misfire_access');
+
+            CREATE TABLE qrtz_paused_trigger_grps (
+            trigger_group character varying(80) NOT NULL,
+            sched_name character varying(120) DEFAULT 'TestScheduler'::character varying NOT NULL
+            );
+
+            CREATE TABLE qrtz_scheduler_state (
+            instance_name character varying(200) NOT NULL,
+            last_checkin_time bigint,
+            checkin_interval bigint,
+            sched_name character varying(120) DEFAULT 'TestScheduler'::character varying NOT NULL
+            );
+
+            CREATE TABLE qrtz_simple_triggers (
+            trigger_name character varying(80) NOT NULL,
+            trigger_group character varying(80) NOT NULL,
+            repeat_count bigint NOT NULL,
+            repeat_interval bigint NOT NULL,
+            times_triggered bigint NOT NULL,
+            sched_name character varying(120) DEFAULT 'TestScheduler'::character varying NOT NULL
+            );
+
+            CREATE TABLE qrtz_simprop_triggers (
+            sched_name character varying(120) NOT NULL,
+            trigger_name character varying(200) NOT NULL,
+            trigger_group character varying(200) NOT NULL,
+            str_prop_1 character varying(512),
+            str_prop_2 character varying(512),
+            str_prop_3 character varying(512),
+            int_prop_1 integer,
+            int_prop_2 integer,
+            long_prop_1 bigint,
+            long_prop_2 bigint,
+            dec_prop_1 numeric(13,4),
+            dec_prop_2 numeric(13,4),
+            bool_prop_1 boolean,
+            bool_prop_2 boolean
+            );
+
+            CREATE TABLE qrtz_triggers (
+            trigger_name character varying(80) NOT NULL,
+            trigger_group character varying(80) NOT NULL,
+            job_name character varying(80) NOT NULL,
+            job_group character varying(80) NOT NULL,
+            description character varying(120),
+            next_fire_time bigint,
+            prev_fire_time bigint,
+            priority integer,
+            trigger_state character varying(16) NOT NULL,
+            trigger_type character varying(8) NOT NULL,
+            start_time bigint NOT NULL,
+            end_time bigint,
+            calendar_name character varying(80),
+            misfire_instr smallint,
+            job_data bytea,
+            sched_name character varying(120) DEFAULT 'TestScheduler'::character varying NOT NULL
+            );
+
+
+            ALTER TABLE ONLY qrtz_blob_triggers
+            ADD CONSTRAINT qrtz_blob_triggers_pkey PRIMARY KEY (sched_name, trigger_name, trigger_group);
+
+            ALTER TABLE ONLY qrtz_calendars
+            ADD CONSTRAINT qrtz_calendars_pkey PRIMARY KEY (sched_name, calendar_name);
+
+            ALTER TABLE ONLY qrtz_cron_triggers
+            ADD CONSTRAINT qrtz_cron_triggers_pkey PRIMARY KEY (sched_name, trigger_name, trigger_group);
+
+            ALTER TABLE ONLY qrtz_fired_triggers
+            ADD CONSTRAINT qrtz_fired_triggers_pkey PRIMARY KEY (sched_name, entry_id);
+
+            ALTER TABLE ONLY qrtz_job_details
+            ADD CONSTRAINT qrtz_job_details_pkey PRIMARY KEY (sched_name, job_name, job_group);
+
+            ALTER TABLE ONLY qrtz_locks
+            ADD CONSTRAINT qrtz_locks_pkey PRIMARY KEY (sched_name, lock_name);
+
+            ALTER TABLE ONLY qrtz_paused_trigger_grps
+            ADD CONSTRAINT qrtz_paused_trigger_grps_pkey PRIMARY KEY (sched_name, trigger_group);
+
+            ALTER TABLE ONLY qrtz_scheduler_state
+            ADD CONSTRAINT qrtz_scheduler_state_pkey PRIMARY KEY (sched_name, instance_name);
+
+            ALTER TABLE ONLY qrtz_simple_triggers
+            ADD CONSTRAINT qrtz_simple_triggers_pkey PRIMARY KEY (sched_name, trigger_name, trigger_group);
+
+            ALTER TABLE ONLY qrtz_simprop_triggers
+            ADD CONSTRAINT qrtz_simprop_triggers_pkey PRIMARY KEY (sched_name, trigger_name, trigger_group);
+
+            ALTER TABLE ONLY qrtz_triggers
+            ADD CONSTRAINT qrtz_triggers_pkey PRIMARY KEY (sched_name, trigger_name, trigger_group);
+
+            CREATE INDEX fki_qrtz_simple_triggers_job_details_name_group ON qrtz_triggers USING btree (job_name, job_group);
+
+            CREATE INDEX fki_qrtz_simple_triggers_qrtz_triggers ON qrtz_simple_triggers USING btree (trigger_name, trigger_group);
+
+            CREATE INDEX idx_qrtz_ft_j_g ON qrtz_fired_triggers USING btree (sched_name, job_name, job_group);
+
+            CREATE INDEX idx_qrtz_ft_jg ON qrtz_fired_triggers USING btree (sched_name, job_group);
+
+            CREATE INDEX idx_qrtz_ft_t_g ON qrtz_fired_triggers USING btree (sched_name, trigger_name, trigger_group);
+
+            CREATE INDEX idx_qrtz_ft_tg ON qrtz_fired_triggers USING btree (sched_name, trigger_group);
+
+            CREATE INDEX idx_qrtz_ft_trig_inst_name ON qrtz_fired_triggers USING btree (sched_name, instance_name);
+
+            CREATE INDEX idx_qrtz_j_grp ON qrtz_job_details USING btree (sched_name, job_group);
+
+            CREATE INDEX idx_qrtz_t_c ON qrtz_triggers USING btree (sched_name, calendar_name);
+
+            CREATE INDEX idx_qrtz_t_g ON qrtz_triggers USING btree (sched_name, trigger_group);
+
+            CREATE INDEX idx_qrtz_t_j ON qrtz_triggers USING btree (sched_name, job_name, job_group);
+
+            CREATE INDEX idx_qrtz_t_jg ON qrtz_triggers USING btree (sched_name, job_group);
+
+            CREATE INDEX idx_qrtz_t_n_g_state ON qrtz_triggers USING btree (sched_name, trigger_group, trigger_state);
+
+            CREATE INDEX idx_qrtz_t_n_state ON qrtz_triggers USING btree (sched_name, trigger_name, trigger_group, trigger_state);
+
+            CREATE INDEX idx_qrtz_t_next_fire_time ON qrtz_triggers USING btree (sched_name, next_fire_time);
+
+            CREATE INDEX idx_qrtz_t_nft_misfire ON qrtz_triggers USING btree (sched_name, misfire_instr, next_fire_time);
+
+            CREATE INDEX idx_qrtz_t_nft_st ON qrtz_triggers USING btree (sched_name, trigger_state, next_fire_time);
+
+            CREATE INDEX idx_qrtz_t_nft_st_misfire ON qrtz_triggers USING btree (sched_name, misfire_instr, next_fire_time, trigger_state);
+
+            CREATE INDEX idx_qrtz_t_nft_st_misfire_grp ON qrtz_triggers USING btree (sched_name, misfire_instr, next_fire_time, trigger_group, trigger_state);
+
+            CREATE INDEX idx_qrtz_t_state ON qrtz_triggers USING btree (sched_name, trigger_state);
+
+            ALTER TABLE ONLY qrtz_blob_triggers
+            ADD CONSTRAINT qrtz_blob_triggers_sched_name_fkey FOREIGN KEY (sched_name, trigger_name, trigger_group) REFERENCES qrtz_triggers(sched_name, trigger_name, trigger_group);
+
+            ALTER TABLE ONLY qrtz_cron_triggers
+            ADD CONSTRAINT qrtz_cron_triggers_sched_name_fkey FOREIGN KEY (sched_name, trigger_name, trigger_group) REFERENCES qrtz_triggers(sched_name, trigger_name, trigger_group);
+
+            ALTER TABLE ONLY qrtz_simple_triggers
+            ADD CONSTRAINT qrtz_simple_triggers_sched_name_fkey FOREIGN KEY (sched_name, trigger_name, trigger_group) REFERENCES qrtz_triggers(sched_name, trigger_name, trigger_group);
+
+            ALTER TABLE ONLY qrtz_simprop_triggers
+            ADD CONSTRAINT qrtz_simprop_triggers_sched_name_fkey FOREIGN KEY (sched_name, trigger_name, trigger_group) REFERENCES qrtz_triggers(sched_name, trigger_name, trigger_group);
+
+            ALTER TABLE ONLY qrtz_triggers
+            ADD CONSTRAINT qrtz_triggers_sched_name_fkey FOREIGN KEY (sched_name, job_name, job_group) REFERENCES qrtz_job_details(sched_name, job_name, job_group);
+        </sql>
+    </changeSet>
+</databaseChangeLog>

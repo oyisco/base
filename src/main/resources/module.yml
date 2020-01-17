@@ -1,0 +1,10 @@
+name: LAMISFingerprintModule
+basePackage: org.fhi360.lamis
+webModules:
+- authorities:
+  breadcrumb:
+  name: FingerprintModule
+  ngModule: FingerprintModule
+  path: /fingerprint
+  resourceKey: 
+  umdLocation: fingerprint.umd.min.js

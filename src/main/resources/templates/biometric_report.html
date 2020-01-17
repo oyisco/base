@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <base href="./"/>
+    <meta charset="UTF-8"/>
+    <title>Biometric Report</title>
+    <link rel="stylesheet" type="text/css" media="screen" href="style.css"/>
+    <style>
+        .header-right {
+            text-align: right;
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+<table style="width: 100%" class="pure-table">
+    <thead style="background-color: #f2f2f2 !important">
+    <tr>
+        <th colspan="10">
+            <p style="font-size: 22px; font-weight: bold; text-align: center" th:text="${title}?: _">
+                Biometric Enrollment Report
+            </p>
+        </th>
+    </tr>
+    <tr>
+        <th colspan="9" class="header-right">From:</th>
+        <th><p th:text="${#dates.format(from, 'dd MMM, yyyy')}"></p></th>
+    </tr>
+    <tr>
+        <th colspan="9" class="header-right">To:</th>
+        <th><p th:text="${#dates.format(to, 'dd MMM, yyyy')}"></p></th>
+    </tr>
+    <tr>
+        <th class="header-right">Facility:</th>
+        <th colspan="4"><p th:text="${facility}"></p></th>
+        <th class="header-right">State:</th>
+        <th colspan="2"><p th:text="${state}"></p></th>
+        <th class="header-right">LGA:</th>
+        <th><p th:text="${localAuthority}"></p></th>
+    </tr>
+    </thead>
+</table>
+<p></p>
+<table style="width: 100%" class="pure-table">
+    <thead>
+    <tr>
+        <th style="width: 5.88% !important">
+            <p style="font-weight: bold; text-align: center">SN</p>
+        </th>
+        <th style="width: 11.76% !important">
+            <p style="font-weight: bold; text-align: center">Unique ID</p>
+        </th>
+        <th style="width: 19.54% !important">
+            <p style="font-weight: bold; text-align: center">Name</p>
+        </th>
+        <th style="width: 14.65% !important">
+            <p style="font-weight: bold; text-align: center">Current Status</p>
+        </th>
+        <th style="width: 4.88% !important">
+            <p style="font-weight: bold; text-align: center">Age</p>
+        </th>
+        <th style="width: 4.88% !important">
+            <p style="font-weight: bold; text-align: center">Gender</p>
+        </th>
+        <th style="width: 27.65% !important">
+            <p style="font-weight: bold; text-align: center">Address</p>
+        </th>
+        <th style="width: 10.76% !important">
+            <p style="font-weight: bold; text-align: center">Phone</p>
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="patient, iterStat : ${dataSource}" th:class="${iterStat.odd}? 'pure-table-odd':''">
+        <td th:text="${iterStat.count}"></td>
+        <td th:text="${patient.unique_id}"></td>
+        <td th:text="${patient.name}"></td>
+        <td th:text="${patient.current_status}"></td>
+        <td th:text="${patient.age}" style="text-align: right"></td>
+        <td th:text="${patient.gender}"></td>
+        <td th:text="${patient.address}"></td>
+        <td th:text="${patient.phone}"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
